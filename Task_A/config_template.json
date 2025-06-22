@@ -1,0 +1,189 @@
+{
+  "description": "Configuration template for Gender Classification System",
+  "version": "1.0",
+
+  "data": {
+    "train_dir": "Task_A/train",
+    "val_dir": "Task_A/val",
+    "batch_size": 32,
+    "num_workers": 4,
+    "image_size": 224,
+    "augmentation": {
+      "horizontal_flip": 0.5,
+      "rotation_degrees": 15,
+      "color_jitter": {
+        "brightness": 0.2,
+        "contrast": 0.2,
+        "saturation": 0.2,
+        "hue": 0.1
+      },
+      "gaussian_blur": 0.1,
+      "random_grayscale": 0.1,
+      "random_erasing": 0.1
+    },
+    "face_detection": {
+      "enabled": true,
+      "padding": 20,
+      "cascade_file": "haarcascade_frontalface_default.xml"
+    }
+  },
+
+  "training": {
+    "num_epochs": 50,
+    "learning_rate": 1e-4,
+    "weight_decay": 1e-4,
+    "dropout_rate": 0.3,
+    "warmup_epochs": 5,
+    "scheduler": {
+      "type": "cosine_annealing_warm_restarts",
+      "T_0": 10,
+      "T_mult": 2,
+      "eta_min": 1e-6
+    },
+    "loss": {
+      "type": "focal_loss",
+      "alpha": 1.0,
+      "gamma": 2.0
+    },
+    "optimizer": {
+      "type": "adamw",
+      "backbone_lr_factor": 0.1,
+      "gradient_clipping": 1.0
+    }
+  },
+
+  "models": {
+    "train_single": {
+      "enabled": true,
+      "architecture": "cnn_transformer_hybrid",
+      "cnn_backbone": "efficientnet_b3",
+      "transformer_backbone": "vit_base_patch16_224",
+      "feature_fusion_dim": 512,
+      "classifier_dims": [256, 128]
+    },
+    "train_ensemble": {
+      "enabled": true,
+      "architectures": [
+        "efficientnet_b3",
+        "resnet50",
+        "vit_base_patch16_224",
+        "convnext_base"
+      ],
+      "fusion_methods": [
+        "weighted_average",
+        "meta_learning",
+        "ensemble"
+      ],
+      "meta_classifier_dims": [512, 256]
+    },
+    "optimization": {
+      "apply_distillation": true,
+      "apply_quantization": true,
+      "create_deployment_model": true,
+      "distillation": {
+        "student_architecture": "resnet34",
+        "temperature": 4.0,
+        "alpha": 0.7,
+        "epochs": 30
+      },
+      "quantization": {
+        "dtype": "qint8",
+        "backend": "fbgemm"
+      }
+    }
+  },
+
+  "evaluation": {
+    "save_plots": true,
+    "detailed_analysis": true,
+    "bias_analysis": true,
+    "metrics": [
+      "accuracy",
+      "precision",
+      "recall",
+      "f1_score",
+      "auc_roc",
+      "confusion_matrix"
+    ],
+    "fairness_metrics": [
+      "demographic_parity",
+      "equalized_odds",
+      "accuracy_difference"
+    ],
+    "save_predictions": true,
+    "generate_report": true
+  },
+
+  "paths": {
+    "output_dir": "output",
+    "model_dir": "output/models",
+    "plots_dir": "output/plots",
+    "logs_dir": "output/logs",
+    "results_dir": "output/results",
+    "predictions_dir": "prediction_results"
+  },
+
+  "logging": {
+    "level": "INFO",
+    "save_to_file": true,
+    "console_output": true,
+    "log_interval": 10,
+    "save_model_interval": 10
+  },
+
+  "hardware": {
+    "device": "auto",
+    "mixed_precision": false,
+    "compile_model": false,
+    "dataloader_pin_memory": true,
+    "dataloader_persistent_workers": true
+  },
+
+  "reproducibility": {
+    "seed": 42,
+    "deterministic": true,
+    "benchmark": false
+  },
+
+  "advanced": {
+    "early_stopping": {
+      "enabled": false,
+      "patience": 10,
+      "min_delta": 1e-4
+    },
+    "learning_rate_finder": {
+      "enabled": false,
+      "min_lr": 1e-7,
+      "max_lr": 1e-1
+    },
+    "model_ema": {
+      "enabled": false,
+      "decay": 0.9999
+    },
+    "cutmix": {
+      "enabled": false,
+      "alpha": 1.0,
+      "prob": 0.5
+    },
+    "mixup": {
+      "enabled": false,
+      "alpha": 0.2,
+      "prob": 0.5
+    }
+  },
+
+  "deployment": {
+    "model_format": "pytorch",
+    "optimization_level": "O1",
+    "batch_inference": true,
+    "onnx_export": false,
+    "tensorrt_optimization": false
+  },
+
+  "experiment": {
+    "name": "gender_classification_experiment",
+    "description": "Comprehensive gender classification with CNN-Transformer hybrid and ensemble methods",
+    "tags": ["gender_classification", "ensemble", "cnn_transformer", "bias_mitigation"],
+    "notes": "Experiment focusing on fairness and high accuracy with multiple architectures"
+  }
+}

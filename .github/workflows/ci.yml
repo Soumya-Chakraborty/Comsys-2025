@@ -1,0 +1,198 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
+
+    - name: Install Task A dependencies
+      run: |
+        cd Task_A
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        cd ..
+
+    - name: Install Task B dependencies
+      run: |
+        cd Task_B
+        pip install -r requirements.txt
+        cd ..
+
+    - name: Install development dependencies
+      run: |
+        pip install pytest pytest-cov flake8 black isort mypy
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Check code formatting with black
+      run: |
+        black --check --diff .
+      continue-on-error: true
+
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only --diff .
+      continue-on-error: true
+
+    - name: Type checking with mypy
+      run: |
+        mypy Task_A/ Task_B/ --ignore-missing-imports
+      continue-on-error: true
+
+    - name: Test Task A installation
+      run: |
+        cd Task_A
+        python test_gpu_setup.py
+        cd ..
+
+    - name: Test Task B installation
+      run: |
+        cd Task_B
+        python test_installation.py
+        cd ..
+
+    - name: Run pytest
+      run: |
+        pytest tests/ -v --cov=Task_A --cov=Task_B --cov-report=xml --cov-report=html
+      continue-on-error: true
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install security tools
+      run: |
+        pip install bandit safety
+
+    - name: Run bandit security scan
+      run: |
+        bandit -r Task_A/ Task_B/ -f json -o bandit-report.json
+      continue-on-error: true
+
+    - name: Run safety check
+      run: |
+        safety check --json --output safety-report.json
+      continue-on-error: true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  performance:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        cd Task_A && pip install -r requirements.txt && cd ..
+        cd Task_B && pip install -r requirements.txt && cd ..
+        pip install memory-profiler psutil
+
+    - name: Performance benchmark
+      run: |
+        echo "Running performance benchmarks..."
+        # Add actual benchmark scripts here
+        python -c "print('Performance benchmarks would run here')"
+      continue-on-error: true
+
+  docker:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      run: |
+        docker build -t comsys-hackathon:latest .
+      continue-on-error: true
+
+  documentation:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install documentation dependencies
+      run: |
+        pip install sphinx sphinx-rtd-theme myst-parser
+
+    - name: Build documentation
+      run: |
+        echo "Documentation build would happen here"
+        # sphinx-build -b html docs/ docs/_build/
+      continue-on-error: true
+
+    - name: Deploy documentation
+      run: |
+        echo "Documentation deployment would happen here"
+      continue-on-error: true
