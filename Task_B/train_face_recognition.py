@@ -920,11 +920,20 @@ class FaceRecognitionTrainer:
     """
     def __init__(self, config=None):
         # Configuration and device setup
-        self.config = config or Config()
+        try:
+            self.config = config or Config()
+        except Exception as e:
+            logger.error(f"Failed to initialize configuration: {e}")
+            raise ValueError(f"Configuration initialization failed: {e}")
+
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         # Create output directory for saving results
         os.makedirs(self.config.OUTPUT_DIR, exist_ok=True)
+
+        # Memory management settings
+        self.max_memory_usage = 0.8  # Use max 80% of available memory
+        self.memory_cleanup_threshold = 0.75  # Cleanup when memory usage exceeds 75%
 
         # Training component placeholders (initialized in setup methods)
         self.model = None              # Neural network model
@@ -943,11 +952,83 @@ class FaceRecognitionTrainer:
             'learning_rate': []
         }
 
+        # Memory monitoring
+        self._setup_memory_monitoring()
+
         # Log system information
         logger.info(f"Trainer initialized on device: {self.device}")
         logger.info(f"CUDA available: {torch.cuda.is_available()}")
         if torch.cuda.is_available():
             logger.info(f"GPU: {torch.cuda.get_device_name()}")
+            logger.info(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+
+    def _setup_memory_monitoring(self):
+        """Setup memory monitoring and management"""
+        try:
+            import psutil
+            self.system_memory = psutil.virtual_memory().total
+            self.memory_monitoring_enabled = True
+            logger.info(f"System Memory: {self.system_memory / 1024**3:.1f} GB")
+        except ImportError:
+            logger.warning("psutil not available. Memory monitoring disabled.")
+            self.memory_monitoring_enabled = False
+
+    def _check_memory_usage(self):
+        """Check current memory usage and trigger cleanup if needed"""
+        if not self.memory_monitoring_enabled:
+            return
+
+        try:
+            import psutil
+            import gc
+
+            # Check system memory
+            memory_percent = psutil.virtual_memory().percent / 100
+
+            # Check GPU memory if available
+            gpu_memory_percent = 0
+            if torch.cuda.is_available():
+                gpu_memory_used = torch.cuda.memory_allocated()
+                gpu_memory_total = torch.cuda.get_device_properties(0).total_memory
+                gpu_memory_percent = gpu_memory_used / gpu_memory_total
+
+            # Trigger cleanup if memory usage is high
+            if memory_percent > self.memory_cleanup_threshold or gpu_memory_percent > self.memory_cleanup_threshold:
+                logger.warning(f"High memory usage detected. System: {memory_percent:.1%}, GPU: {gpu_memory_percent:.1%}")
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                logger.info("Memory cleanup performed")
+
+        except Exception as e:
+            logger.warning(f"Memory check failed: {e}")
+
+    def _optimize_batch_size(self, dataset_size: int) -> int:
+        """Dynamically optimize batch size based on available memory and dataset size"""
+        base_batch_size = self.config.BATCH_SIZE
+
+        # Adjust based on dataset size
+        if dataset_size < 1000:
+            # Small dataset - use smaller batch size
+            optimal_batch_size = min(base_batch_size, max(8, dataset_size // 10))
+        elif dataset_size > 10000:
+            # Large dataset - may need larger batch size for efficiency
+            optimal_batch_size = min(base_batch_size * 2, 128)
+        else:
+            optimal_batch_size = base_batch_size
+
+        # Adjust based on available memory
+        if torch.cuda.is_available():
+            gpu_memory_gb = torch.cuda.get_device_properties(0).total_memory / 1024**3
+            if gpu_memory_gb < 8:  # Less than 8GB GPU memory
+                optimal_batch_size = min(optimal_batch_size, 16)
+            elif gpu_memory_gb < 16:  # Less than 16GB GPU memory
+                optimal_batch_size = min(optimal_batch_size, 32)
+
+        if optimal_batch_size != base_batch_size:
+            logger.info(f"Optimized batch size from {base_batch_size} to {optimal_batch_size}")
+
+        return optimal_batch_size
 
     def setup_data(self):
         """
