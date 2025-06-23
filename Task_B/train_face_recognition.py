@@ -318,15 +318,15 @@ class EnhancedFaceViT(nn.Module):
         embeddings = self.layer_norm(embeddings)
 
         # Step 4: Mode-dependent Output
-        if self.training and labels is not None:
+        if labels is not None:
             # Training Mode: Compute ArcFace logits for loss calculation
             # ArcFace applies angular margin and returns scaled logits
-            logits = self.arcface(embeddings, labels)
-            return logits, embeddings
+            logits = self.arcface(embeddings, labels)   # → [B, C]
         else:
             # Inference Mode: Return normalized embeddings for similarity computation
             # These embeddings can be used for face verification and identification
-            return embeddings
+            logits = None
+        return logits, embeddings
 
 class RobustFaceTransforms:
     """
