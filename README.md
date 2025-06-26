@@ -442,32 +442,6 @@ graph TD
 
 ---
 
-## 🏆 **Awards & Recognition**
-
-<div align="center">
-
-<table>
-<tr>
-<td align="center">🏅</td>
-<td align="center"><strong>Best Computer Vision Solution</strong></td>
-<td align="center">2024</td>
-</tr>
-<tr>
-<td align="center">🚀</td>
-<td align="center"><strong>Innovation in AI Ethics</strong></td>
-<td align="center">2024</td>
-</tr>
-<tr>
-<td align="center">⭐</td>
-<td align="center"><strong>Open Source Excellence</strong></td>
-<td align="center">2024</td>
-</tr>
-</table>
-
-</div>
-
----
-
 ## 🤝 **Contributing**
 
 <div align="center">
