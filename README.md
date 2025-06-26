@@ -117,13 +117,6 @@
 ├── 📜 LICENSE                       # MIT License
 ├── 🔒 SECURITY.md                   # Security Policy
 ├── 🤝 CONTRIBUTING.md               # Contribution Guidelines
-├── 🔧 .github/                      # GitHub Actions & Templates
-│   ├── 🚀 workflows/ci.yml         # CI/CD Pipeline
-│   └── 📝 ISSUE_TEMPLATE/           # Issue Templates
-├── 🧪 tests/                        # Test Suite
-│   ├── ⚙️ conftest.py              # Test Configuration
-│   ├── 🎯 test_task_a.py           # Task A Tests
-│   └── 👤 test_task_b.py           # Task B Tests
 ├── 🎯 Task_A/                       # Gender Classification
 │   ├── 📊 README.md                # Detailed Documentation
 │   ├── 📦 requirements.txt         # Dependencies
