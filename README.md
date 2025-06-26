@@ -502,35 +502,6 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 ---
 
-## 📞 **Support & Community**
-
-<div align="center">
-
-### 💬 **Get Help**
-
-<p>
-<a href="https://github.com/Soumya-Chakraborty/Comsys-2025/discussions">
-<img src="https://img.shields.io/badge/GitHub-Discussions-purple?style=for-the-badge&logo=github" alt="Discussions">
-</a>
-<a href="https://github.com/Soumya-Chakraborty/Comsys-2025/issues">
-<img src="https://img.shields.io/badge/GitHub-Issues-red?style=for-the-badge&logo=github" alt="Issues">
-</a>
-</p>
-
-### 📊 **Project Stats**
-
-<p>
-<img src="https://github-readme-stats.vercel.app/api?username=Soumya-Chakraborty&repo=Comsys-2025&show_icons=true&theme=radical" alt="GitHub Stats">
-</p>
-
-<p>
-<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=Soumya-Chakraborty&layout=compact&theme=radical" alt="Top Languages">
-</p>
-
-</div>
-
----
-
 ## 📚 **Documentation**
 
 <div align="center">
@@ -568,7 +539,7 @@ If you use this work in your research, please cite:
 ```bibtex
 @article{comsys2024hackathon,
   title={ComsysHackathon: Advanced Computer Vision Solutions for Gender Classification and Face Recognition},
-  author={Soumya Chakraborty and ComsysHackathon Team},
+  author={Soumya Chakraborty and Nikita Maiti},
   year={2024},
   journal={Computer Vision and Pattern Recognition},
   url={https://github.com/Soumya-Chakraborty/Comsys-2025}
@@ -605,14 +576,6 @@ We extend our gratitude to:
 
 ---
 
-<div align="center">
-
-## ⭐ **Star History**
-
-<img src="https://api.star-history.com/svg?repos=Soumya-Chakraborty/Comsys-2025&type=Date" alt="Star History Chart">
-
----
-
 ### 🚀 **Ready to Get Started?**
 
 <p>
@@ -626,7 +589,7 @@ We extend our gratitude to:
 <p><strong>🌟 If you find this project useful, please consider giving it a star! 🌟</strong></p>
 
 <p>
-<sub>Built with ❤️ by the ComsysHackathon Team</sub>
+<sub>Built with ❤️ by the Soumya Chakraborty & Nikita Maiti</sub>
 </p>
 
 </div>
